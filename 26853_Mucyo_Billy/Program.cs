@@ -1,261 +1,217 @@
 using System;
+using System.Drawing;
+using System.Windows.Forms;
 
-namespace Mucyo_Billy_26853
+namespace _26853_Mucyo_Billy
 {
-    class Program
+    static class Program
     {
-        static void Main(string[] args)
+        [STAThread]
+        static void Main()
         {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-            bool loggedIn = false;
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new LoginForm());
+        }
+    }
 
-            // LOGIN SCREEN
-            while (!loggedIn)
+    // ================= 1. LOGIN FORM =================
+    public class LoginForm : Form
+    {
+        private TextBox txtUser;
+        private TextBox txtPass;
+        private Button btnLogin;
+
+        public LoginForm()
+        {
+            this.Text = "Login";
+            this.Size = new Size(300, 200);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            Label lblUser = new Label() { Text = "Username:", Location = new Point(20, 20), AutoSize = true };
+            txtUser = new TextBox() { Location = new Point(100, 17), Width = 150 };
+
+            Label lblPass = new Label() { Text = "Password:", Location = new Point(20, 50), AutoSize = true };
+            txtPass = new TextBox() { Location = new Point(100, 47), Width = 150, PasswordChar = '*' };
+
+            btnLogin = new Button() { Text = "Login", Location = new Point(100, 80), Width = 80 };
+            btnLogin.Click += BtnLogin_Click;
+
+            this.Controls.AddRange(new Control[] { lblUser, txtUser, lblPass, txtPass, btnLogin });
+        }
+
+        private void BtnLogin_Click(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrWhiteSpace(txtUser.Text) && !string.IsNullOrWhiteSpace(txtPass.Text))
             {
-                Console.Clear();
-                Console.WriteLine("========================================");
-                Console.WriteLine("           WELCOME - LOGIN              ");
-                Console.WriteLine("========================================");
-                Console.Write("Enter your username: ");
-                string username = Console.ReadLine();
-                Console.Write("Enter your password: ");
-                string password = Console.ReadLine();
+                this.Hide();
+                new MenuForm().Show();
+            }
+            else
+            {
+                MessageBox.Show("Please enter username and password.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+    }
 
-                if (!string.IsNullOrWhiteSpace(username) && !string.IsNullOrWhiteSpace(password))
+    // ================= 2. MAIN MENU FORM =================
+    public class MenuForm : Form
+    {
+        public MenuForm()
+        {
+            this.Text = "Main Menu - Choose";
+            this.Size = new Size(300, 250);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            Label lblTitle = new Label() { Text = "Choose an option:", Location = new Point(80, 20), AutoSize = true, Font = new Font("Arial", 12, FontStyle.Bold) };
+
+            Button btnBicycle = new Button() { Text = "Bicycle Rental", Location = new Point(80, 60), Width = 120, Height = 40 };
+            btnBicycle.Click += (s, e) => { this.Hide(); new BicycleForm().Show(); };
+
+            Button btnMash = new Button() { Text = "Mushroom ID", Location = new Point(80, 110), Width = 120, Height = 40 };
+            btnMash.Click += (s, e) => { this.Hide(); new MushroomForm().Show(); };
+
+            Button btnLogout = new Button() { Text = "Logout", Location = new Point(80, 160), Width = 120, Height = 40, BackColor = Color.LightCoral };
+            btnLogout.Click += (s, e) => { Application.Exit(); };
+
+            this.Controls.AddRange(new Control[] { lblTitle, btnBicycle, btnMash, btnLogout });
+        }
+    }
+
+    // ================= 3. BICYCLE RENTAL FORM =================
+    public class BicycleForm : Form
+    {
+        private TextBox txtStart;
+        private TextBox txtEnd;
+        private Label lblResult;
+
+        public BicycleForm()
+        {
+            this.Text = "Bicycle Rental";
+            this.Size = new Size(350, 300);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            Label lblStart = new Label() { Text = "Start Time (0-23):", Location = new Point(20, 20), AutoSize = true };
+            txtStart = new TextBox() { Location = new Point(150, 17), Width = 150 };
+
+            Label lblEnd = new Label() { Text = "End Time (1-24):", Location = new Point(20, 50), AutoSize = true };
+            txtEnd = new TextBox() { Location = new Point(150, 47), Width = 150 };
+
+            Button btnCalc = new Button() { Text = "Calculate Total", Location = new Point(100, 80), Width = 120 };
+            btnCalc.Click += BtnCalc_Click;
+
+            lblResult = new Label() { Text = "Total: 0 RWF", Location = new Point(20, 120), AutoSize = true, Font = new Font("Arial", 10, FontStyle.Bold) };
+
+            Button btnBack = new Button() { Text = "Back to Menu", Location = new Point(100, 200), Width = 120 };
+            btnBack.Click += (s, e) => { this.Close(); new MenuForm().Show(); };
+
+            this.Controls.AddRange(new Control[] { lblStart, txtStart, lblEnd, txtEnd, btnCalc, lblResult, btnBack });
+        }
+
+        private void BtnCalc_Click(object sender, EventArgs e)
+        {
+            if (int.TryParse(txtStart.Text, out int start) && int.TryParse(txtEnd.Text, out int end))
+            {
+                if (start >= 0 && start <= 23 && end >= 1 && end <= 24 && start < end)
                 {
-                    loggedIn = true;
-                    Console.WriteLine($"\nLogin successful! Welcome, {username}.\n");
-                    Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey();
+                    int total = 0;
+                    for (int h = start; h < end; h++) total += GetRate(h);
+                    lblResult.Text = $"Total Hours: {end - start}\nTotal Cost: {total} RWF";
                 }
                 else
                 {
-                    Console.WriteLine("\nInvalid credentials. Please try again.\n");
-                    Console.WriteLine("Press any key to continue...");
-                    Console.ReadKey();
+                    MessageBox.Show("Invalid times. Start must be < End.", "Error");
                 }
             }
-
-            // MAIN MENU
-            bool running = true;
-            while (running)
+            else
             {
-                Console.Clear();
-                Console.WriteLine("========================================");
-                Console.WriteLine("             MAIN MENU                  ");
-                Console.WriteLine("========================================");
-                Console.WriteLine("  [1] Bicycle Rental                    ");
-                Console.WriteLine("  [2] Mushroom Identifier               ");
-                Console.WriteLine("  [3] Logout                            ");
-                Console.WriteLine("========================================");
-                Console.Write("\nChoose an option (1-3): ");
-
-                string choice = Console.ReadLine();
-
-                switch (choice)
-                {
-                    case "1":
-                        RunBicycleRental();
-                        break;
-                    case "2":
-                        RunMushroomIdentifier();
-                        break;
-                    case "3":
-                        running = false;
-                        Console.WriteLine("\nLogged out successfully. Goodbye!\n");
-                        break;
-                    default:
-                        Console.WriteLine("\nInvalid choice. Please enter 1, 2, or 3.\n");
-                        Console.WriteLine("Press any key to continue...");
-                        Console.ReadKey();
-                        break;
-                }
+                MessageBox.Show("Please enter valid numbers.", "Error");
             }
         }
 
-        // PROBLEM 1: BICYCLE RENTAL
-        static void RunBicycleRental()
+        private int GetRate(int h)
         {
-            Console.Clear();
-            Console.WriteLine("========================================");
-            Console.WriteLine("     BICYCLE RENTAL CALCULATOR          ");
-            Console.WriteLine("========================================");
+            if ((h >= 0 && h < 7) || (h >= 21 && h < 24)) return 500;
+            if ((h >= 7 && h < 14) || (h >= 19 && h < 21)) return 1000;
+            if (h >= 14 && h < 19) return 1500;
+            return 0;
+        }
+    }
 
-            int startTime, endTime;
+    // ================= 4. MUSHROOM IDENTIFIER FORM =================
+    public class MushroomForm : Form
+    {
+        private Label lblQuestion;
+        private Label lblResult;
+        private bool[] possible = { true, true, true, true, true, true };
+        private string[] names = { "Agaric Jaunissant", "Amanite tue-mouche", "Cepe de bordeau", "Coprin chevelu", "Girolle", "Pied bleu" };
+        private int step = 0;
 
-            while (true)
+        public MushroomForm()
+        {
+            this.Text = "Mushroom Identifier";
+            this.Size = new Size(350, 250);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            lblQuestion = new Label() { Text = "Does your mushroom have gills?", Location = new Point(20, 20), AutoSize = true, Font = new Font("Arial", 11) };
+            
+            Button btnYes = new Button() { Text = "Yes", Location = new Point(80, 60), Width = 80 };
+            btnYes.Click += (s, e) => ProcessAnswer(true);
+
+            Button btnNo = new Button() { Text = "No", Location = new Point(180, 60), Width = 80 };
+            btnNo.Click += (s, e) => ProcessAnswer(false);
+
+            lblResult = new Label() { Text = "", Location = new Point(20, 100), AutoSize = true, Font = new Font("Arial", 10, FontStyle.Bold), ForeColor = Color.DarkGreen };
+
+            Button btnBack = new Button() { Text = "Back to Menu", Location = new Point(100, 160), Width = 120 };
+            btnBack.Click += (s, e) => { this.Close(); new MenuForm().Show(); };
+
+            this.Controls.AddRange(new Control[] { lblQuestion, btnYes, btnNo, lblResult, btnBack });
+        }
+
+        private void ProcessAnswer(bool yes)
+        {
+            if (step == 0)
             {
-                Console.Write("Enter starting time (hour, 0-23): ");
-                if (int.TryParse(Console.ReadLine(), out startTime) && startTime >= 0 && startTime <= 23)
-                    break;
-                Console.WriteLine("Invalid! Enter an integer between 0 and 23.");
+                if (!yes) { possible[0]=false; possible[1]=false; possible[3]=false; possible[4]=false; possible[5]=false; }
+                else { possible[2]=false; }
+                step++; lblQuestion.Text = "Does your mushroom grow in a forest?";
             }
-
-            while (true)
+            else if (step == 1)
             {
-                Console.Write("Enter ending time (hour, 1-24): ");
-                if (int.TryParse(Console.ReadLine(), out endTime) && endTime >= 1 && endTime <= 24)
-                    break;
-                Console.WriteLine("Invalid! Enter an integer between 1 and 24.");
+                if (yes) { possible[0]=false; possible[3]=false; }
+                else { possible[1]=false; possible[4]=false; possible[5]=false; }
+                step++; lblQuestion.Text = "Does your mushroom have a ring?";
             }
-
-            if (startTime >= endTime)
+            else if (step == 2)
             {
-                Console.WriteLine("\nStarting time must be less than ending time.\n");
-                Console.WriteLine("Press any key to return to menu...");
-                Console.ReadKey();
+                if (yes) { possible[4]=false; possible[5]=false; possible[2]=false; }
+                else { possible[0]=false; possible[1]=false; possible[3]=false; }
+                step++; lblQuestion.Text = "Does your mushroom have a convex cup?";
+            }
+            else if (step == 3)
+            {
+                if (yes) { possible[2]=false; possible[3]=false; possible[4]=false; }
+                else { possible[0]=false; possible[1]=false; possible[5]=false; }
+                ShowResult();
                 return;
             }
 
-            int totalCost = 0;
-            int totalHours = endTime - startTime;
-
-            Console.WriteLine("\n---------- Rental Breakdown ----------");
-            Console.WriteLine($"{"Hour Range",-15} {"Rate (RWF)",-15} {"Subtotal (RWF)"}");
-            Console.WriteLine("--------------------------------------");
-
-            for (int hour = startTime; hour < endTime; hour++)
-            {
-                int rate = GetHourlyRate(hour);
-                totalCost += rate;
-                Console.WriteLine($"  {hour:00}:00 - {hour + 1:00}:00    {rate,-15} {rate}");
-            }
-
-            Console.WriteLine("--------------------------------------");
-            Console.WriteLine($"  Total Hours : {totalHours}");
-            Console.WriteLine($"  Total Cost  : {totalCost} RWF");
-            Console.WriteLine("--------------------------------------\n");
-
-            Console.WriteLine("Press any key to return to menu...");
-            Console.ReadKey();
+            if (CountPossible() == 1) ShowResult();
         }
 
-        static int GetHourlyRate(int hour)
+        private int CountPossible()
         {
-            if ((hour >= 0 && hour < 7) || (hour >= 21 && hour < 24))
-                return 500;
-            if ((hour >= 7 && hour < 14) || (hour >= 19 && hour < 21))
-                return 1000;
-            if (hour >= 14 && hour < 19)
-                return 1500;
-            return 0;
+            int c = 0; foreach (bool b in possible) if (b) c++; return c;
         }
 
-        // PROBLEM 2: MUSHROOM IDENTIFIER
-        static void RunMushroomIdentifier()
+        private void ShowResult()
         {
-            Console.Clear();
-            Console.WriteLine("========================================");
-            Console.WriteLine("      MUSHROOM IDENTIFIER GAME          ");
-            Console.WriteLine("========================================");
-            Console.WriteLine("\nThink of one of these 6 mushrooms:");
-            Console.WriteLine("  1. Agaric Jaunissant");
-            Console.WriteLine("  2. Amanite tue-mouche");
-            Console.WriteLine("  3. Cepe de bordeau");
-            Console.WriteLine("  4. Coprin chevelu");
-            Console.WriteLine("  5. Girolle");
-            Console.WriteLine("  6. Pied bleu");
-            Console.WriteLine("\nAnswer the following questions with 'yes' or 'no'.\n");
-
-            bool[] possible = { true, true, true, true, true, true };
-            string[] names = { "Agaric Jaunissant", "Amanite tue-mouche", "Cepe de bordeau",
-                               "Coprin chevelu", "Girolle", "Pied bleu" };
-
-            string answer1 = AskQuestion("1. Does your mushroom have gills?");
-            if (answer1 == "no")
+            for (int i = 0; i < names.Length; i++)
             {
-                possible[0] = false; possible[1] = false; possible[3] = false;
-                possible[4] = false; possible[5] = false;
+                if (possible[i]) { lblResult.Text = "Your mushroom is: " + names[i]; break; }
             }
-            else
-            {
-                possible[2] = false;
-            }
-            if (CountPossible(possible) == 1) { DisplayResult(names, possible); return; }
-
-            string answer2 = AskQuestion("2. Does your mushroom grow in a forest?");
-            if (answer2 == "yes")
-            {
-                possible[0] = false; possible[3] = false;
-            }
-            else
-            {
-                possible[1] = false; possible[4] = false; possible[5] = false;
-            }
-            if (CountPossible(possible) == 1) { DisplayResult(names, possible); return; }
-
-            string answer3 = AskQuestion("3. Does your mushroom have a ring?");
-            if (answer3 == "yes")
-            {
-                possible[4] = false; possible[5] = false; possible[2] = false;
-            }
-            else
-            {
-                possible[0] = false; possible[1] = false; possible[3] = false;
-            }
-            if (CountPossible(possible) == 1) { DisplayResult(names, possible); return; }
-
-            string answer4 = AskQuestion("4. Does your mushroom have a convex cup?");
-            if (answer4 == "yes")
-            {
-                possible[2] = false; possible[3] = false; possible[4] = false;
-            }
-            else
-            {
-                possible[0] = false; possible[1] = false; possible[5] = false;
-            }
-
-            DisplayResult(names, possible);
-        }
-
-        static string AskQuestion(string question)
-        {
-            while (true)
-            {
-                Console.Write(question + " (yes/no): ");
-                string input = Console.ReadLine().Trim().ToLower();
-                if (input == "yes" || input == "no")
-                    return input;
-                Console.WriteLine("Please answer 'yes' or 'no'.");
-            }
-        }
-
-        static int CountPossible(bool[] possible)
-        {
-            int count = 0;
-            foreach (bool b in possible) if (b) count++;
-            return count;
-        }
-
-        static void DisplayResult(string[] names, bool[] possible)
-        {
-            Console.WriteLine("\n--------------------------------------");
-            int count = CountPossible(possible);
-
-            if (count == 1)
-            {
-                for (int i = 0; i < names.Length; i++)
-                {
-                    if (possible[i])
-                    {
-                        Console.WriteLine($"  Your mushroom is: {names[i]}");
-                        break;
-                    }
-                }
-            }
-            else if (count == 0)
-            {
-                Console.WriteLine("  No mushroom matches your answers.");
-            }
-            else
-            {
-                Console.WriteLine("  Could not determine uniquely. Possibilities:");
-                for (int i = 0; i < names.Length; i++)
-                    if (possible[i]) Console.WriteLine($"    - {names[i]}");
-            }
-            Console.WriteLine("--------------------------------------\n");
-            Console.WriteLine("Press any key to return to menu...");
-            Console.ReadKey();
+            lblQuestion.Text = "Done!";
         }
     }
 }
